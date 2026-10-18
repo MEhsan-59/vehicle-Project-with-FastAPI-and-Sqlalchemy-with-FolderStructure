@@ -5,8 +5,10 @@ from core.auth import decode_access_token, decode_settings_token
 from core.database import get_db
 from repositories.account_repository import AccountRepository
 from repositories.part_repository import PartRepository
+from repositories.vehicle_repository import VehicleRepository
 from services.account_service import AccountService
 from services.part_service import PartService
+from services.vehicle_service import VehicleService
 
 security_scheme = HTTPBearer()
 
@@ -17,6 +19,10 @@ def get_account_service(db=Depends(get_db)):
 
 def get_part_service(db=Depends(get_db)):
     return PartService(PartRepository(db))
+
+
+def get_vehicle_service(db=Depends(get_db)):
+    return VehicleService(VehicleRepository(db))
 
 
 def get_current_user(

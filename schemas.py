@@ -75,3 +75,30 @@ class SettingsUnlockRequest(BaseModel):
 class SettingsUnlockResponse(BaseModel):
     settings_token: str
     expires_in_minutes: int
+
+
+class CarCreateRequest(BaseModel):
+    car_no: str = Field(..., min_length=1, max_length=20)
+    model: str = Field(..., min_length=1, max_length=50)
+    company: str = Field(..., min_length=1, max_length=50)
+    onground_km: int = Field(0, ge=0)
+
+    @field_validator("car_no")
+    @classmethod
+    def clean_car_no(cls, value: str) -> str:
+        value = value.strip().upper()
+        if not value:
+            raise ValueError("Must not be empty")
+        return value
+
+    @field_validator("model", "company")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Must not be empty")
+        return value
+
+
+class CarKmUpdateRequest(BaseModel):
+    onground_km: int = Field(..., ge=0)

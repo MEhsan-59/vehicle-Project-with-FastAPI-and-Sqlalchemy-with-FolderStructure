@@ -36,4 +36,14 @@ parts, and adding new parts, requires a short-lived settings token from
 `POST /settings/unlock`. Default parts are shared; user updates create a
 user-specific override.
 
+## Car endpoints
+
+- `POST /cars`: add a car with `car_no`, `model`, `company`, and optional `onground_km`.
+- `DELETE /cars/{car_no}`: delete a car owned by the authenticated account.
+- `PUT /cars/{car_no}/km`: update the car's odometer reading using `onground_km`.
+
+Car numbers are stored in uppercase. Odometer readings cannot be negative or
+lower than the previously saved reading. All car endpoints require
+authentication.
+
 Run the tests with `pytest -q`.

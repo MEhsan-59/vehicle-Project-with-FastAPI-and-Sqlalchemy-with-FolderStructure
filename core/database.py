@@ -47,6 +47,31 @@ def initialize_database() -> None:
                     )
                 )
 
+            if "vehicles" in tables:
+                vehicle_columns = {
+                    column["name"]
+                    for column in inspect(connection).get_columns("vehicles")
+                }
+                if "created_at" not in vehicle_columns:
+                    connection.execute(
+                        text("ALTER TABLE vehicles ADD COLUMN created_at DATETIME")
+                    )
+                connection.execute(
+                    text(
+                        "UPDATE vehicles SET created_at = CURRENT_TIMESTAMP "
+                        "WHERE created_at IS NULL"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "CREATE TRIGGER IF NOT EXISTS "
+                        "trg_vehicles_created_at AFTER INSERT ON vehicles "
+                        "WHEN NEW.created_at IS NULL BEGIN "
+                        "UPDATE vehicles SET created_at = CURRENT_TIMESTAMP "
+                        "WHERE id = NEW.id; END"
+                    )
+                )
+
             legacy_parts = False
             if "parts" in tables:
                 part_columns = inspect(connection).get_columns("parts")
@@ -86,6 +111,19 @@ def initialize_database() -> None:
                     connection.execute(
                         text(
                             "ALTER TABLE accounts ADD COLUMN created_at "
+                            "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
+                        )
+                    )
+
+            if "vehicles" in tables:
+                vehicle_columns = {
+                    column["name"]
+                    for column in inspect(connection).get_columns("vehicles")
+                }
+                if "created_at" not in vehicle_columns:
+                    connection.execute(
+                        text(
+                            "ALTER TABLE vehicles ADD COLUMN created_at "
                             "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
                         )
                     )

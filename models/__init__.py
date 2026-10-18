@@ -1,4 +1,5 @@
 from models.part import Part
 from models.user import Account
+from models.vehicle import Vehicle
 
-__all__ = ["Account", "Part"]
+__all__ = ["Account", "Part", "Vehicle"]
