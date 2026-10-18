@@ -1,7 +1,8 @@
-# Account and Part API
+# Vehicle Maintenance API
 
 FastAPI application providing account creation, login with a JWT bearer token,
-an authenticated `/me` endpoint, and authenticated part configuration CRUD.
+an authenticated `/me` endpoint, part configuration CRUD, car management,
+maintenance tracking, and expiry alerts.
 
 ## Setup
 
@@ -41,9 +42,34 @@ user-specific override.
 - `POST /cars`: add a car with `car_no`, `model`, `company`, and optional `onground_km`.
 - `DELETE /cars/{car_no}`: delete a car owned by the authenticated account.
 - `PUT /cars/{car_no}/km`: update the car's odometer reading using `onground_km`.
+- `GET /history`: view all history for the authenticated account.
+- `GET /history?filter_type=car&value=ABC-123`: filter history by car number.
+- `GET /history?filter_type=part&value=oil%20filter`: filter by part name.
 
 Car numbers are stored in uppercase. Odometer readings cannot be negative or
 lower than the previously saved reading. All car endpoints require
-authentication.
+authentication. History records car additions, odometer updates, and part
+additions or updates. Deleting a car also deletes its history.
+
+## Maintenance and expiry endpoints
+
+- `PUT /cars/{car_no}/parts/{part}`: record or update a part replacement using
+  `changed_km` and `changed_date`.
+- `GET /cars/maintenance?filter_type=car&value=...`: view maintenance records
+  filtered by car number.
+- `GET /cars/maintenance?filter_type=part&value=...`: view maintenance records
+  filtered by part name.
+- `GET /cars/maintenance`: view all of the authenticated user's maintenance
+  records.
+- `GET /expiry`: list the authenticated user's expired and soon-to-expire
+  maintenance items.
+
+Car and part filters are case-insensitive partial matches. All maintenance
+views require authentication and only show the current user's cars.
+
+Maintenance replacements must not be dated in the future, and their odometer
+reading cannot exceed the car's current reading. The next due values are
+calculated from the effective part configuration. Expiry responses include
+items that are past due or within the part's configured kilometer/day limits.
 
 Run the tests with `pytest -q`.

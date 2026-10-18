@@ -1,7 +1,8 @@
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from models import Part
+from models import Maintenance, Part, Vehicle
 
 
 class PartRepository:
@@ -80,6 +81,20 @@ class PartRepository:
         try:
             self.db.add(override)
             self.db.flush()
+            user_vehicle_ids = self.db.query(Vehicle.id).filter(
+                Vehicle.active_user == user_id
+            )
+            (
+                self.db.query(Maintenance)
+                .filter(
+                    Maintenance.part_id == default_part.id,
+                    Maintenance.vehicle_id.in_(user_vehicle_ids),
+                )
+                .update(
+                    {Maintenance.part_id: override.id},
+                    synchronize_session=False,
+                )
+            )
             self.db.commit()
             self.db.refresh(override)
         except IntegrityError:
@@ -102,6 +117,18 @@ class PartRepository:
         self.db.commit()
         self.db.refresh(part_config)
         return part_config
+
+    def count_usage(self, part_id: int, user_id: str) -> int:
+        return (
+            self.db.query(func.count(Maintenance.id))
+            .join(Vehicle, Maintenance.vehicle_id == Vehicle.id)
+            .filter(
+                Maintenance.part_id == part_id,
+                Vehicle.active_user == user_id,
+            )
+            .scalar()
+            or 0
+        )
 
     def delete(self, part_config: Part) -> None:
         self.db.delete(part_config)

@@ -3,7 +3,10 @@ from repositories.vehicle_repository import VehicleRepository
 
 
 class VehicleService:
-    def __init__(self, repository: VehicleRepository):
+    def __init__(
+        self,
+        repository: VehicleRepository,
+    ):
         self.repository = repository
 
     def add_car(
@@ -43,5 +46,6 @@ class VehicleService:
                 False,
                 f"Onground km must not be less than old km {vehicle.onground_km}.",
             )
-        self.repository.update(vehicle, onground_km)
+        old_km = vehicle.onground_km
+        self.repository.update(vehicle, onground_km, old_km)
         return True, "Onground km updated successfully."

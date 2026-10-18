@@ -1,7 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from core.database import Base
 from models.user import Account
 from core.security import SecurityHelper
 

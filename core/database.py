@@ -72,6 +72,24 @@ def initialize_database() -> None:
                     )
                 )
 
+            if "history" in tables:
+                history_columns = {
+                    column["name"]
+                    for column in inspect(connection).get_columns("history")
+                }
+                if "part_name" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN part_name VARCHAR")
+                    )
+                if "changed_km" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN changed_km INTEGER")
+                    )
+                if "changed_date" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN changed_date DATE")
+                    )
+
             legacy_parts = False
             if "parts" in tables:
                 part_columns = inspect(connection).get_columns("parts")
@@ -126,6 +144,24 @@ def initialize_database() -> None:
                             "ALTER TABLE vehicles ADD COLUMN created_at "
                             "TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP"
                         )
+                    )
+
+            if "history" in tables:
+                history_columns = {
+                    column["name"]
+                    for column in inspect(connection).get_columns("history")
+                }
+                if "part_name" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN part_name VARCHAR")
+                    )
+                if "changed_km" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN changed_km INTEGER")
+                    )
+                if "changed_date" not in history_columns:
+                    connection.execute(
+                        text("ALTER TABLE history ADD COLUMN changed_date DATE")
                     )
 
             if "parts" in tables:

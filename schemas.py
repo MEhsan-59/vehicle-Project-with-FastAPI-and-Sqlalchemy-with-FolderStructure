@@ -1,3 +1,6 @@
+from datetime import date, datetime
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -102,3 +105,50 @@ class CarCreateRequest(BaseModel):
 
 class CarKmUpdateRequest(BaseModel):
     onground_km: int = Field(..., ge=0)
+
+
+class MaintenanceUpdateRequest(BaseModel):
+    changed_km: int = Field(..., ge=0)
+    changed_date: date
+
+
+class ExpiryResponse(BaseModel):
+    car_no: str
+    model: str
+    company: str
+    part: str
+    status: Literal["expired", "expiring"]
+    remaining_km: int
+    remaining_days: int
+    next_changed_km: int
+    next_changed_date: date
+    message: str
+
+
+class MaintenanceDetailResponse(BaseModel):
+    car_no: str
+    model: str
+    company: str
+    onground_km: int
+    part: str
+    km_limit: int
+    day_limit: int
+    changed_km: int
+    next_changed_km: int
+    changed_date: date
+    next_changed_date: date
+
+
+class HistoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    vehicle_id: int | None
+    car_no: str
+    action_type: str
+    part_name: str | None
+    changed_km: int | None
+    changed_date: date | None
+    action_timestamp: datetime | None
+    active_user: str
+    details: str | None

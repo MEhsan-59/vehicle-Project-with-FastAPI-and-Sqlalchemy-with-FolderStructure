@@ -4,10 +4,15 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from core.auth import decode_access_token, decode_settings_token
 from core.database import get_db
 from repositories.account_repository import AccountRepository
+from repositories.history_repository import HistoryRepository
+from repositories.maintenance_repository import MaintenanceRepository
 from repositories.part_repository import PartRepository
 from repositories.vehicle_repository import VehicleRepository
-from services.account_service import AccountService
-from services.part_service import PartService
+from services.account_manager import AccountManager as AccountService
+from services.expiry_service import ExpiryService
+from services.history_service import HistoryService
+from services.maintenance_service import MaintenanceService
+from services.part_manager import PartManager as PartService
 from services.vehicle_service import VehicleService
 
 security_scheme = HTTPBearer()
@@ -23,6 +28,24 @@ def get_part_service(db=Depends(get_db)):
 
 def get_vehicle_service(db=Depends(get_db)):
     return VehicleService(VehicleRepository(db))
+
+
+def get_history_service(db=Depends(get_db)):
+    return HistoryService(HistoryRepository(db))
+
+
+def get_maintenance_service(db=Depends(get_db)):
+    return MaintenanceService(
+        VehicleRepository(db),
+        MaintenanceRepository(db),
+        PartRepository(db),
+    )
+
+
+def get_expiry_service(
+    service: MaintenanceService = Depends(get_maintenance_service),
+):
+    return ExpiryService(service)
 
 
 def get_current_user(

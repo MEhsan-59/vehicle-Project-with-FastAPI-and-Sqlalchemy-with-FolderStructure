@@ -10,7 +10,7 @@ from core.database import Base
 from models import Part
 from repositories.part_repository import PartRepository
 from services.default_part_service import seed_default_parts
-from services.part_service import PartService
+from services.part_manager import PartManager as PartService
 
 
 DEFAULT_PARTS = [

@@ -69,6 +69,7 @@ def test_car_endpoints_require_authentication(client):
     assert client.put(
         "/cars/ABC-123/km", json={"onground_km": 21000}
     ).status_code in (401, 403)
+    assert client.get("/history").status_code in (401, 403)
 
 
 def test_add_car_normalizes_car_number(client):
@@ -182,6 +183,102 @@ def test_car_km_update_rejects_negative_value_and_unknown_car(client):
         json={"onground_km": 100},
         headers=headers,
     ).status_code == 404
+
+
+def test_car_history_records_create_and_odometer_update(client):
+    headers = authenticate(client)
+    client.post("/cars", json=CAR, headers=headers)
+    client.put(
+        "/cars/ABC-123/km",
+        json={"onground_km": 21000},
+        headers=headers,
+    )
+
+    response = client.get("/history", headers=headers)
+
+    assert response.status_code == 200
+    history = response.json()
+    assert [entry["action_type"] for entry in history] == [
+        "km_updated",
+        "car_added",
+    ]
+    assert history[0]["car_no"] == "ABC-123"
+    assert history[0]["details"] == "km: 20000 -> 21000"
+    assert history[1]["details"] == "Honda Civic, 20000 km"
+    assert all(entry["action_timestamp"] for entry in history)
+
+
+def test_car_history_is_removed_when_car_is_deleted(client):
+    headers = authenticate(client)
+    client.post("/cars", json=CAR, headers=headers)
+    client.put(
+        "/cars/ABC-123/km",
+        json={"onground_km": 21000},
+        headers=headers,
+    )
+    client.delete("/cars/ABC-123", headers=headers)
+
+    assert client.get("/history", headers=headers).json() == []
+
+
+def test_car_history_filter_and_account_scope(client):
+    owner_headers = authenticate(client, "history-owner")
+    other_headers = authenticate(client, "history-other")
+    client.post("/cars", json=CAR, headers=owner_headers)
+    client.post(
+        "/cars",
+        json={**CAR, "car_no": "xyz-987"},
+        headers=owner_headers,
+    )
+    client.post(
+        "/cars",
+        json={**CAR, "car_no": "other-1"},
+        headers=other_headers,
+    )
+
+    filtered = client.get(
+        "/history?filter_type=car&value=abc-123",
+        headers=owner_headers,
+    )
+    other_user_history = client.get(
+        "/history",
+        headers=other_headers,
+    )
+    blank_filter = client.get(
+        "/history?filter_type=car&value=%20",
+        headers=owner_headers,
+    )
+
+    assert filtered.status_code == 200
+    assert [entry["car_no"] for entry in filtered.json()] == ["ABC-123"]
+    assert [entry["car_no"] for entry in other_user_history.json()] == [
+        "OTHER-1"
+    ]
+    assert blank_filter.status_code == 400
+
+
+def test_car_history_logs_only_successful_changes(client):
+    headers = authenticate(client)
+
+    missing_car_update = client.put(
+        "/cars/ABC-123/km",
+        json={"onground_km": 21000},
+        headers=headers,
+    )
+    client.post("/cars", json=CAR, headers=headers)
+    same_odometer_update = client.put(
+        "/cars/ABC-123/km",
+        json={"onground_km": 20000},
+        headers=headers,
+    )
+
+    assert missing_car_update.status_code == 404
+    assert same_odometer_update.status_code == 200
+    history = client.get("/history", headers=headers).json()
+    assert [entry["action_type"] for entry in history] == [
+        "km_updated",
+        "car_added",
+    ]
 
 
 def test_created_at_is_generated_when_vehicle_is_inserted():

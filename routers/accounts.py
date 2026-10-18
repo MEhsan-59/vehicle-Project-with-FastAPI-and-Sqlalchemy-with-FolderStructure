@@ -12,7 +12,7 @@ from schemas import (
     SettingsUnlockResponse,
     TokenResponse,
 )
-from services.account_service import AccountService
+from services.account_manager import AccountManager as AccountService
 
 router = APIRouter()
 

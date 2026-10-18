@@ -11,7 +11,7 @@ from schemas import (
     PartConfigResponse,
     PartUpdateRequest,
 )
-from services.part_service import PartService
+from services.part_manager import PartManager as PartService
 
 router = APIRouter()
 
@@ -54,6 +54,8 @@ def update_part(
     if not result["status"]:
         if result["message"] == "Part not found.":
             status_code = 404
+        elif result["message"].startswith("Part is in use"):
+            status_code = 409
         else:
             status_code = 400
         raise HTTPException(status_code=status_code, detail=result["message"])
@@ -70,6 +72,8 @@ def delete_part(
     if not result["status"]:
         if result["message"] == "Part not found.":
             status_code = 404
+        elif result["message"].startswith("Part is in use"):
+            status_code = 409
         else:
             status_code = 400
         raise HTTPException(status_code=status_code, detail=result["message"])
