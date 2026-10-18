@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("SECRET_KEY", "test-only-secret-key-for-auth-tests")
+os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 from core.database import Base, get_db
 from main import app

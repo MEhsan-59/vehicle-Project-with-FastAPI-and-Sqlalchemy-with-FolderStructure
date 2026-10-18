@@ -32,3 +32,6 @@ class AccountService:
 
     def get_account_by_id(self, user_id: str):
         return self.repository.get_by_user_id(user_id)
+
+    def verify_password(self, user_id: str, password: str) -> bool:
+        return self.repository.validate_login(user_id, password) is not None

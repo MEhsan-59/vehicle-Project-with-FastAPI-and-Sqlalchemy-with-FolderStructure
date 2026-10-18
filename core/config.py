@@ -10,6 +10,9 @@ class Settings:
         raise ValueError("SECRET_KEY is not set in the environment")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    SETTINGS_TOKEN_EXPIRE_MINUTES: int = int(
+        os.getenv("SETTINGS_TOKEN_EXPIRE_MINUTES", "10")
+    )
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./auth.db")
 
 
